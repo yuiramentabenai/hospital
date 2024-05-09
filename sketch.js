@@ -1,4 +1,5 @@
 let player;
+let npc;
 
 let startMusic;
 let bgImage;
@@ -17,7 +18,8 @@ let wall, wall2, wall3, wall4, wall5, wall6;
 let StoryEnd = false;
 
 let narrationTimer = 0;
-let GifTimer = 0;
+let gifStartTime;
+const gifDuration = 5; 
 
 let gifImage;
 let girl1Image;
@@ -50,7 +52,13 @@ let Movable = true;
 let Endding;
 let EnddingImage;
 
+let talkBox;
+
 let gameState = "start"; 
+
+let airwall1;
+let airwall2;
+let airwall3;
 
 function preload() {
   
@@ -69,6 +77,8 @@ function preload() {
   Diary2Image = loadImage('paper.png');
   EnddingImage = loadImage('end1.GIF');
   startMusic = loadSound('start_music.mp3');
+  npcImage = loadImage('npc.png')
+  talkBoxImage = loadImage('talkbox.png')
 
 }
 
@@ -92,7 +102,7 @@ function draw() {
   } else if (gameState === "playing") { 
 //clear();
     //world.gravity.y = 100;
-    player.speed = 5;
+    player.speed = 3;
     player.rotation = 0;
     // image(bgImage, 0, 0, mapWidth, mapHeight);
 
@@ -179,10 +189,10 @@ image(bgImage, bgX, bgY, mapWidth, mapHeight);
 
 
 
-    // fill(255);
-    // textSize(16);
-    // textAlign(CENTER);
-    // text(`Player Position: (${playerMapX}, ${playerMapY})`, width / 2, 30);
+    fill(255);
+    textSize(16);
+    textAlign(CENTER);
+    text(`Player Position: (${playerMapX}, ${playerMapY})`, width / 2, 30);
 
 
 
@@ -190,7 +200,8 @@ image(bgImage, bgX, bgY, mapWidth, mapHeight);
   //////////////////////////////////////gravity//////////////////////////////////////////////////////////////////////////////////
    
   if (playerMapY > 50 && playerMapY < 400) {
-    world.gravity.y = 0;
+    world.gravity.y = 20;
+
 
 
   }else if ((playerMapX > 1000 && playerMapX < 1100) ) {
@@ -209,6 +220,7 @@ image(bgImage, bgX, bgY, mapWidth, mapHeight);
 
     world.gravity.y = 0;
     bgImage = loadImage('bg2.png');
+;
 
 
     if (kb.pressing('up')) {
@@ -219,6 +231,7 @@ image(bgImage, bgX, bgY, mapWidth, mapHeight);
 
 
 } else if (playerMapX > 1800 && playerMapX < 1900){
+
     world.gravity.y = 0;
     bgImage = loadImage('bg3.png');
     if (kb.pressing('up')) {
@@ -238,7 +251,15 @@ image(bgImage, bgX, bgY, mapWidth, mapHeight);
 
 
 
+if ((playerMapX > 1000 && playerMapX < 1100) ) {
+player.overlap(airwall1);
+}else if (playerMapX > 1400 && playerMapX < 1500){
 
+  player.overlap(airwall1);
+}else if (playerMapX > 1800 && playerMapX < 1900){
+  player.overlap(airwall1);}else{
+    player.collide(airwall1);
+  }
 
 
 
@@ -311,7 +332,12 @@ door.position.y = bgY + 560;
 
 //////////////////////////diary//////////////////////////////////////////////////
 Diary2.position.x = bgX + 500;
-Diary2.position.y = bgY +660;
+Diary2.position.y = bgY + 660;
+
+
+//////////////////////////diary//////////////////////////////////////////////////
+npc.position.x = bgX + 740;
+npc.position.y = bgY +600;
 
 
 
@@ -338,6 +364,8 @@ Diary2.position.y = bgY +660;
 if (player.overlap(paper)) {
 if(playerMapY > 50 && playerMapY < 400){
     bgImage = loadImage('letter2.png');
+
+
 }
 
 
@@ -357,12 +385,19 @@ playerHasPaper = true;
 
 if (player.isReading){
     text(`Go down a bit and move LEFT and RIGHT to Read.`, width/2, 100);
+    
+airwall2.position.x = bgX + 1650;
+airwall2.position.y = bgY +100;
+player.collide(airwall2);
+}else{
+  player.overlap(airwall2);
 }
 
 
 if(playerHasPaper){
 
-
+  npc.position.x = -2000;
+  npc.position.y = bgY +600;
     fill(255,0,0);
     textSize(16);
     textAlign(CENTER);
@@ -449,7 +484,8 @@ if (player.overlap(photo)) {
 
   if (playerHasPhoto){
 
-
+    airwall3.position.x = bgX + 1170;
+    airwall3.position.y = bgY +100;
     fill(255,0,0);
     textSize(16);
     textAlign(CENTER);
@@ -460,7 +496,7 @@ if (player.overlap(photo)) {
 
 
   ///////////////////////////event////////////////////////////
-if (playerHasDiary && playerHasPhoto && playerHasPhoto){
+if (playerHasDiary && playerHasPaper && playerHasPhoto){
 
 
   door.position.x = -1000;
@@ -473,13 +509,15 @@ if (playerHasDiary && playerHasPhoto && playerHasPhoto){
 
 
     StoryEnd = true;
+
+
     }
    
    
     if (StoryEnd){
 
 
-        /////////////////////////////////////draw bed////////////////////////////
+/////////////////////////////////////draw bed/////////////////////////////
 bed.position.x = -1000;
 bed.position.y = bgY + 100;
 
@@ -546,13 +584,25 @@ player.position.y = 10;
 
     //////////////////////////Endding//////////////////////////////////////////////////
     Endding.position.x = bgX + 490;
-    Endding.position.y = bgY + 350;
+    Endding.position.y = bgY + 370;
+    Endding.visible = true;
+    gifStartTime = millis();
+
 
 
    
 }
 
+if (Endding.visible) {
 
+  const elapsed = (millis() - gifStartTime) / 1000; 
+  if (elapsed >= gifDuration) {
+
+  Endding.visible = false;
+  gameState = 'start'
+
+  }
+}
 
 
   }
@@ -570,7 +620,7 @@ if (player.collide(door)) {
   
   if (narrationTimer > 0) {
   
-  
+
 	 
 	  fill(255,0,0);
 	  textSize(20);
@@ -580,13 +630,10 @@ if (player.collide(door)) {
   
   }
   
-  
-  
-  
-  }else if (gameState === "end") {
+player.overlap(npc);
 
-    gameState = "start";
-
+ 
+  
   }
 }
 
@@ -595,6 +642,15 @@ function keyPressed() {
     startGame(); 
 }
 }
+
+function displayNPCDialogue(message) {
+  talkBox.visible = true;
+  fill(255);
+  textAlign(CENTER);
+  textSize(20);
+  text(message, talkBox.position.x, talkBox.position.y);
+}
+
 
 function startGame() {
 
@@ -679,5 +735,25 @@ Endding.addImage(EnddingImage);
   ///////////////////Floor/////////////////////////////////////////////////////////////////////////
   floor2 = createSprite(0, 769, 2000, 250,'static');
   floor2.addImage(FloorImage);
+
+
+///////////////////////////////////////////npc////////////////////////////
+  npc = createSprite(500, 600, 100, 100, 'static');
+  npc.addImage(npcImage);
+
+  Endding.visible = false;
+
+////////////////////////wall6//////////////////////////////
+airwall1 = createSprite(0, 250, 2000, 50,'static');
+airwall1.visible = false;
+
+////////////////////////wall6//////////////////////////////
+airwall2 = createSprite(0, 300, 50, 400,'static');
+airwall2.visible = false;
+
+////////////////////////wall6//////////////////////////////
+airwall3 = createSprite(0, 300, 50, 400,'static');
+airwall3.visible = false;
+
 }
 
